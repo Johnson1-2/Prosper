@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WhatsApp Bot</title>
+  <style>
+    body {
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      width: 100%;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #25D366;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #message {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>WhatsApp Bot</h2>
+    <input id="phone" type="text" placeholder="Enter phone number" />
+    <button onclick="sendRequest()">Connect Bot</button>
+    <div id="message"></div>
+  </div>
+  <script>
+    async function sendRequest() {
+      const phone = document.getElementById("phone").value;
+      const message = document.getElementById("message");
+
+      if (!phone) {
+        message.innerText = "Please enter your phone number.";
+        return;
+      }
+
+      message.innerText = "Sending request...";
+      const res = await fetch("http://localhost:3000/request-approval", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        message.innerText = "Waiting for approval...";
+
+        const interval = setInterval(async () => {
+          const statusRes = await fetch(`http://localhost:3000/status?phone=${phone}`);
+          const status = await statusRes.json();
+          if (status.approved) {
+            clearInterval(interval);
+            message.innerText = "✅ Login Successfully Approved!";
+            alert("✅ Login Approved");
+          }
+        }, 2000);
+      } else {
+        message.innerText = "Failed to send request.";
+      }
+    }
+  </script>
+</body>
+</html>
